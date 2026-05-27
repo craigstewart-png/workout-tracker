@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sweat Stakes">
+<meta name="theme-color" content="#0a0a0a">
+<title>Sweat Stakes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --craig: #4f8ef7;
+    --partner: #3ecf8e;
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --muted: #666;
+    --radius: 14px;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 52px 20px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-title {
+    font-family: var(--font-display);
+    font-size: 42px;
+    letter-spacing: 1px;
+    line-height: 1;
+    color: #fff;
+  }
+  .header-title span { color: var(--craig); }
+  .week-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 6px 14px;
+  }
+  .week-nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .week-nav button:hover { color: var(--text); }
+  .week-nav span {
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: var(--text);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    padding: 0 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  /* Content */
+  .content { flex: 1; padding: 0 20px 100px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Score banner */
+  .score-banner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+  .score-side { display: flex; flex-direction: column; }
+  .score-side.right { align-items: flex-end; }
+  .score-name {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .score-pts {
+    font-family: var(--font-display);
+    font-size: 38px;
+    line-height: 1;
+  }
+  .score-pts.craig { color: var(--craig); }
+  .score-pts.partner { color: var(--partner); }
+  .score-sessions { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .score-vs {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .leader-strip {
+    font-size: 12px;
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 16px;
+    min-height: 18px;
+  }
+  .leader-strip strong { color: var(--text); }
+
+  /* Player cards */
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .player-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .player-card-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 0.5px;
+  }
+  .player-card-name.craig { color: var(--craig); }
+  .player-card-name.partner { color: var(--partner); }
+  .bonus-pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: var(--muted);
+    background: var(--surface2);
+  }
+  .bonus-pill.earned { color: #3ecf8e; background: rgba(62,207,142,0.12); }
+
+  /* Activity rows */
+  .activity {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity:last-child { border-bottom: none; }
+  .activity-left { display: flex; flex-direction: column; gap: 4px; }
+  .activity-label { font-size: 14px; color: var(--text); }
+  .activity-bonus {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .activity-bonus input[type=checkbox] {
+    accent-color: var(--craig);
+    cursor: pointer;
+    width: 14px;
+    height: 14px;
+  }
+  .activity-bonus.partner-bonus input[type=checkbox] { accent-color: var(--partner); }
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .counter-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .counter-btn:active { transform: scale(0.9); background: var(--border); }
+  .counter-val {
+    font-family: var(--font-display);
+    font-size: 22px;
+    min-width: 24px;
+    text-align: center;
+    color: var(--text);
+  }
+
+  /* Save button */
+  .save-wrap { padding: 16px 0 0; }
+  .save-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--craig);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .save-btn:active { opacity: 0.8; }
+  .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Season view */
+  .season-totals {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .season-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .season-row:last-child { margin-bottom: 0; }
+  .season-name { font-size: 13px; color: var(--muted); min-width: 64px; }
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .bar-fill.craig { background: var(--craig); }
+  .bar-fill.partner { background: var(--partner); }
+  .season-pts { font-family: var(--font-display); font-size: 18px; min-width: 52px; text-align: right; }
+  .season-pts.craig { color: var(--craig); }
+  .season-pts.partner { color: var(--partner); }
+
+  .history-section-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .history-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-week { color: var(--muted); }
+  .history-scores { display: flex; gap: 14px; align-items: center; }
+  .history-score { font-family: var(--font-display); font-size: 16px; }
+  .history-score.craig { color: var(--craig); }
+  .history-score.partner { color: var(--partner); }
+  .history-winner { font-size: 11px; color: var(--muted); }
+
+  /* Prizes view */
+  .prize-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .prize-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .prize-icon { font-size: 24px; }
+  .prize-title { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.5px; color: var(--text); }
+  .prize-tag {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .prize-tag.weekly { background: rgba(79,142,247,0.15); color: var(--craig); }
+  .prize-tag.monthly { background: rgba(62,207,142,0.15); color: var(--partner); }
+  .prize-tag.season { background: rgba(255,180,0,0.12); color: #f5a623; }
+  .prize-tag.streak { background: rgba(255,100,100,0.12); color: #f56565; }
+  .prize-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* Rules view */
+  .rules-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .rules-title { font-family: var(--font-display); font-size: 18px; letter-spacing: 0.5px; margin-bottom: 10px; color: var(--text); }
+  .rules-item { font-size: 13px; color: var(--muted); line-height: 1.7; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .rules-item:last-child { border-bottom: none; }
+  .rules-item strong { color: var(--text); font-weight: 500; }
+
+  /* Status */
+  .status { font-size: 12px; text-align: center; color: var(--muted); padding: 8px 0; min-height: 20px; }
+  .status.error { color: #f56565; }
+  .status.ok { color: var(--partner); }
+
+  /* Empty state */
+  .empty { font-size: 13px; color: var(--muted); padding: 20px 16px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-title">Sweat<span>&</span>Stakes</div>
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">&#8592;</button>
+      <span id="week-label">Week 1</span>
+      <button onclick="changeWeek(1)">&#8594;</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showView('log',this)">Log</button>
+    <button class="tab" onclick="showView('season',this)">Season</button>
+    <button class="tab" onclick="showView('prizes',this)">Prizes</button>
+    <button class="tab" onclick="showView('rules',this)">Rules</button>
+  </div>
+
+  <div class="content">
+
+    <!-- LOG VIEW -->
+    <div id="view-log" class="view active">
+      <div class="score-banner">
+        <div class="score-side">
+          <div class="score-name">Craig</div>
+          <div class="score-pts craig" id="craig-pts">0</div>
+          <div class="score-sessions" id="craig-sessions">0 sessions</div>
+        </div>
+        <div class="score-vs">VS</div>
+        <div class="score-side right">
+          <div class="score-name" style="text-align:right">Partner</div>
+          <div class="score-pts partner" id="partner-pts">0</div>
+          <div class="score-sessions" id="partner-sessions">0 sessions</div>
+        </div>
+      </div>
+      <div class="leader-strip" id="leader-strip">Log your sessions below.</div>
+
+      <!-- Craig -->
+      <div class="player-card">
+        <div class="player-card-header">
+          <div class="player-card-name craig">Craig</div>
+          <div class="bonus-pill" id="craig-bonus-pill">0 more for +2 bonus</div>
+        </div>
+        <div class="activity">
+          <div class="activity-left">
+            <div class="activity-label">🏃 Running</div>
+            <div class="activity-bonus">
+              <input type="checkbox" id="craig-run-long" onchange="calcAll()">
+              <label for="craig-run-long">Any 7K+ run this week? (+0.5)</label>
+            </div>
+          </div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('craig','run',-1)">−</button>
+            <span class="counter-val" id="craig-run">0</span>
+            <button class="counter-btn" onclick="adjust('craig','run',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🏋️ Gym</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('craig','gym',-1)">−</button>
+            <span class="counter-val" id="craig-gym">0</span>
+            <button class="counter-btn" onclick="adjust('craig','gym',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🏊 Swimming</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('craig','swim',-1)">−</button>
+            <span class="counter-val" id="craig-swim">0</span>
+            <button class="counter-btn" onclick="adjust('craig','swim',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🤽 Water polo</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('craig','polo',-1)">−</button>
+            <span class="counter-val" id="craig-polo">0</span>
+            <button class="counter-btn" onclick="adjust('craig','polo',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partner -->
+      <div class="player-card">
+        <div class="player-card-header">
+          <div class="player-card-name partner">Partner</div>
+          <div class="bonus-pill" id="partner-bonus-pill">0 more for +2 bonus</div>
+        </div>
+        <div class="activity">
+          <div class="activity-left">
+            <div class="activity-label">🏃 Running</div>
+            <div class="activity-bonus partner-bonus">
+              <input type="checkbox" id="partner-run-long" onchange="calcAll()">
+              <label for="partner-run-long">Any 5K+ run this week? (+0.5)</label>
+            </div>
+          </div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('partner','run',-1)">−</button>
+            <span class="counter-val" id="partner-run">0</span>
+            <button class="counter-btn" onclick="adjust('partner','run',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🏋️ Gym</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('partner','gym',-1)">−</button>
+            <span class="counter-val" id="partner-gym">0</span>
+            <button class="counter-btn" onclick="adjust('partner','gym',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🥎 Softball</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('partner','softball',-1)">−</button>
+            <span class="counter-val" id="partner-softball">0</span>
+            <button class="counter-btn" onclick="adjust('partner','softball',1)">+</button>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="activity-label">🏊 Swimming</div>
+          <div class="counter">
+            <button class="counter-btn" onclick="adjust('partner','swim',-1)">−</button>
+            <span class="counter-val" id="partner-swim">0</span>
+            <button class="counter-btn" onclick="adjust('partner','swim',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-wrap">
+        <button class="save-btn" id="save-btn" onclick="saveWeek()">Save week</button>
+      </div>
+      <div class="status" id="save-status"></div>
+    </div>
+
+    <!-- SEASON VIEW -->
+    <div id="view-season" class="view">
+      <div class="season-totals">
+        <div class="season-row">
+          <div class="season-name">Craig</div>
+          <div class="bar-track"><div class="bar-fill craig" id="bar-craig" style="width:0%"></div></div>
+          <div class="season-pts craig" id="season-craig">0</div>
+        </div>
+        <div class="season-row">
+          <div class="season-name">Partner</div>
+          <div class="bar-track"><div class="bar-fill partner" id="bar-partner" style="width:0%"></div></div>
+          <div class="season-pts partner" id="season-partner">0</div>
+        </div>
+      </div>
+      <div class="history-section-title">Week by week</div>
+      <div class="history-list" id="history-list">
+        <div class="empty">No weeks saved yet.</div>
+      </div>
+      <div class="status" id="season-status"></div>
+    </div>
+
+    <!-- PRIZES VIEW -->
+    <div id="view-prizes" class="view">
+      <div class="prize-card">
+        <div class="prize-header"><span class="prize-icon">🏅</span><span class="prize-title">Weekly winner</span></div>
+        <span class="prize-tag weekly">Every week</span>
+        <div class="prize-desc">Loser picks and books the next date night — something active counts double. Mini golf, bowling, a walk somewhere new.</div>
+      </div>
+      <div class="prize-card">
+        <div class="prize-header"><span class="prize-icon">🥈</span><span class="prize-title">Monthly champion</span></div>
+        <span class="prize-tag monthly">End of each month</span>
+        <div class="prize-desc">Winner gets a full guilt-free lazy day — the other person handles all errands, cooking, and admin. One rest day, earned.</div>
+      </div>
+      <div class="prize-card">
+        <div class="prize-header"><span class="prize-icon">🏆</span><span class="prize-title">Season title</span></div>
+        <span class="prize-tag season">End of season (12 weeks)</span>
+        <div class="prize-desc">Winner picks a weekend trip or experience — hotel stay, spa day, activity weekend. The big one.</div>
+      </div>
+      <div class="prize-card">
+        <div class="prize-header"><span class="prize-icon">⚡</span><span class="prize-title">Streak bonus</span></div>
+        <span class="prize-tag streak">Win 3 weeks in a row</span>
+        <div class="prize-desc">Three consecutive wins earns a bonus treat of your choice — a nice dinner out, a massage, whatever you fancy.</div>
+      </div>
+    </div>
+
+    <!-- RULES VIEW -->
+    <div id="view-rules" class="view">
+      <div class="rules-card">
+        <div class="rules-title">Scoring</div>
+        <div class="rules-item"><strong>1 pt</strong> per session — all activities count equally</div>
+        <div class="rules-item"><strong>+0.5 pt</strong> Craig: any run of 7K or more in the week</div>
+        <div class="rules-item"><strong>+0.5 pt</strong> Partner: any run of 5K or more in the week</div>
+        <div class="rules-item"><strong>+2 pts</strong> Volume bonus: 5 or more sessions in a week</div>
+      </div>
+      <div class="rules-card">
+        <div class="rules-title">Typical baselines</div>
+        <div class="rules-item"><strong>Craig</strong> ~5–6 sessions/week ≈ 5–6 pts</div>
+        <div class="rules-item"><strong>Partner</strong> ~5 sessions/week ≈ 5 pts</div>
+        <div class="rules-item" style="color:var(--muted)">Both start roughly equal. The competition rewards going beyond your norm.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://clyvlptnaqxtiqzlsqom.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNseXZscHRuYXF4dGlxemxzcW9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODU2MzMsImV4cCI6MjA5NTQ2MTYzM30.dnzGkoZXugfxrNV7zQCMZzadONYcYIPMp4Z5aYEypJk';
+const HEADERS = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+let currentWeek = 1;
+let allWeeks = [];
+
+function g(id) { return document.getElementById(id); }
+function num(id) { return parseInt(g(id).textContent) || 0; }
+function fmt(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
+
+function adjust(person, activity, delta) {
+  const el = g(person + '-' + activity);
+  el.textContent = Math.max(0, (parseInt(el.textContent) || 0) + delta);
+  calcAll();
+}
+
+function calcScore(person) {
+  let sessions, pts;
+  if (person === 'craig') {
+    sessions = num('craig-run') + num('craig-gym') + num('craig-swim') + num('craig-polo');
+    pts = sessions;
+    if (g('craig-run-long').checked && num('craig-run') > 0) pts += 0.5;
+  } else {
+    sessions = num('partner-run') + num('partner-gym') + num('partner-swim') + num('partner-softball');
+    pts = sessions;
+    if (g('partner-run-long').checked && num('partner-run') > 0) pts += 0.5;
+  }
+  if (sessions >= 5) pts += 2;
+  return { pts, sessions };
+}
+
+function calcAll() {
+  const c = calcScore('craig');
+  const p = calcScore('partner');
+
+  g('craig-pts').textContent = fmt(c.pts);
+  g('partner-pts').textContent = fmt(p.pts);
+  g('craig-sessions').textContent = c.sessions + ' session' + (c.sessions !== 1 ? 's' : '');
+  g('partner-sessions').textContent = p.sessions + ' session' + (p.sessions !== 1 ? 's' : '');
+
+  const nc = Math.max(0, 5 - c.sessions);
+  const np = Math.max(0, 5 - p.sessions);
+  const cp = g('craig-bonus-pill');
+  const pp = g('partner-bonus-pill');
+  if (c.sessions >= 5) { cp.textContent = '✓ Volume bonus'; cp.classList.add('earned'); }
+  else { cp.textContent = nc + ' more for +2 bonus'; cp.classList.remove('earned'); }
+  if (p.sessions >= 5) { pp.textContent = '✓ Volume bonus'; pp.classList.add('earned'); }
+  else { pp.textContent = np + ' more for +2 bonus'; pp.classList.remove('earned'); }
+
+  const strip = g('leader-strip');
+  if (c.pts === 0 && p.pts === 0) { strip.innerHTML = 'Log your sessions below.'; }
+  else if (c.pts === p.pts) { strip.innerHTML = '🤝 Tied at <strong>' + fmt(c.pts) + ' pts</strong> each.'; }
+  else {
+    const leader = c.pts > p.pts ? 'Craig' : 'Partner';
+    const gap = fmt(Math.abs(c.pts - p.pts));
+    strip.innerHTML = '<strong>' + leader + '</strong> leads by <strong>' + gap + ' pt' + (Math.abs(c.pts - p.pts) !== 1 ? 's' : '') + '</strong>.';
+  }
+}
+
+async function saveWeek() {
+  const c = calcScore('craig');
+  const p = calcScore('partner');
+  const btn = g('save-btn');
+  const status = g('save-status');
+  btn.disabled = true;
+  status.textContent = 'Saving…';
+  status.className = 'status';
+
+  const payload = {
+    week_number: currentWeek,
+    craig_pts: c.pts,
+    partner_pts: p.pts,
+    craig_run: num('craig-run'),
+    craig_gym: num('craig-gym'),
+    craig_swim: num('craig-swim'),
+    craig_polo: num('craig-polo'),
+    craig_run_long: g('craig-run-long').checked,
+    partner_run: num('partner-run'),
+    partner_gym: num('partner-gym'),
+    partner_swim: num('partner-swim'),
+    partner_softball: num('partner-softball'),
+    partner_run_long: g('partner-run-long').checked,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const existing = allWeeks.find(w => w.week_number === currentWeek);
+    let res;
+    if (existing) {
+      res = await fetch(SUPABASE_URL + '/rest/v1/weeks?id=eq.' + existing.id, {
+        method: 'PATCH', headers: { ...HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(SUPABASE_URL + '/rest/v1/weeks', {
+        method: 'POST', headers: { ...HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+    }
+    if (!res.ok) throw new Error(await res.text());
+    status.textContent = '✓ Saved';
+    status.className = 'status ok';
+    await loadAllWeeks();
+  } catch(e) {
+    status.textContent = 'Error saving. Check connection.';
+    status.className = 'status error';
+  }
+  btn.disabled = false;
+}
+
+async function loadAllWeeks() {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/weeks?order=week_number.asc', { headers: HEADERS });
+    if (!res.ok) throw new Error();
+    allWeeks = await res.json();
+    renderSeason();
+    loadWeek(currentWeek);
+  } catch(e) {
+    g('save-status').textContent = 'Could not connect to database.';
+    g('save-status').className = 'status error';
+  }
+}
+
+function loadWeek(n) {
+  const w = allWeeks.find(w => w.week_number === n);
+  if (w) {
+    g('craig-run').textContent = w.craig_run;
+    g('craig-gym').textContent = w.craig_gym;
+    g('craig-swim').textContent = w.craig_swim;
+    g('craig-polo').textContent = w.craig_polo;
+    g('craig-run-long').checked = w.craig_run_long;
+    g('partner-run').textContent = w.partner_run;
+    g('partner-gym').textContent = w.partner_gym;
+    g('partner-swim').textContent = w.partner_swim;
+    g('partner-softball').textContent = w.partner_softball;
+    g('partner-run-long').checked = w.partner_run_long;
+  } else {
+    ['craig-run','craig-gym','craig-swim','craig-polo','partner-run','partner-gym','partner-swim','partner-softball'].forEach(id => g(id).textContent = '0');
+    g('craig-run-long').checked = false;
+    g('partner-run-long').checked = false;
+  }
+  calcAll();
+}
+
+function renderSeason() {
+  const cTotal = allWeeks.reduce((s,w) => s + Number(w.craig_pts), 0);
+  const pTotal = allWeeks.reduce((s,w) => s + Number(w.partner_pts), 0);
+  const max = Math.max(cTotal, pTotal, 1);
+  g('season-craig').textContent = fmt(cTotal);
+  g('season-partner').textContent = fmt(pTotal);
+  g('bar-craig').style.width = Math.round((cTotal / max) * 100) + '%';
+  g('bar-partner').style.width = Math.round((pTotal / max) * 100) + '%';
+
+  const list = g('history-list');
+  if (!allWeeks.length) { list.innerHTML = '<div class="empty">No weeks saved yet.</div>'; return; }
+  list.innerHTML = allWeeks.map(w => {
+    const cp = Number(w.craig_pts), pp = Number(w.partner_pts);
+    const winner = cp > pp ? 'Craig' : pp > cp ? 'Partner' : 'Tied';
+    return '<div class="history-row"><span class="history-week">Week ' + w.week_number + '</span><div class="history-scores"><span class="history-score craig">' + fmt(cp) + '</span><span class="history-score partner">' + fmt(pp) + '</span><span class="history-winner">' + winner + '</span></div></div>';
+  }).join('');
+}
+
+function changeWeek(delta) {
+  const next = currentWeek + delta;
+  if (next < 1) return;
+  currentWeek = next;
+  g('week-label').textContent = 'Week ' + currentWeek;
+  g('save-status').textContent = '';
+  loadWeek(currentWeek);
+}
+
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  g('view-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'season') renderSeason();
+}
+
+loadAllWeeks();
+</script>
+</body>
+</html>
